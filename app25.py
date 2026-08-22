@@ -1,3 +1,4 @@
+import os
 from PIL import Image
 from google import genai
 import streamlit as st
@@ -6,14 +7,14 @@ st.set_page_config(
     page_title="Livestock Deep Analyzer", page_icon="🐄", layout="centered"
 )
 
-# Your explicit API key
-client = genai.Client(
-    api_key="AQ.Ab8RN6JU5FnS5IbbCQRLv-6y8gF2tcAnLkPkLYxO-uqXjGOhZA"
-)
+# Paste your copied key here directly inside os.environ:
+os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6JAbXQdxg28Y_M4nXC-7553Qd1MbY-KJHRczA89uyYduw"
+
+client = genai.Client()
 
 st.title("🐄 Smart Livestock Visual Analyzer")
 st.write(
-    "Upload an image of a cattle or buffalo to receive a complete breed, sex,"
+    "Upload an image of cattle or buffalo to receive a complete breed, sex,"
     " age stage, and profile breakdown."
 )
 
@@ -30,7 +31,7 @@ if uploaded_file is not None:
     
     1. **Animal Type:** (Cattle / Buffalo / Other)
     2. **Identified Breed:** (e.g., Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, etc.)
-    3. **Estimated Sex:** (Male / Female — state the visual cues such as udder/teats, muscular sheath, neck bulk, or horns)
+    3. **Estimated Sex:** (Male / Female — state visual cues such as udder/teats, muscular sheath, neck bulk, or horns)
     4. **Estimated Age Stage:** (Calf / Heifer-Young / Mature Adult — provide reasons based on body proportions)
     5. **Key Physical Traits Observed:** (Horn shape, hump presence, coat coloration, dewlap size)
     6. **Native Region & Primary Utility:** (Where this breed originates and whether it is Dairy, Draft, or Dual-purpose)
@@ -42,7 +43,7 @@ if uploaded_file is not None:
     with st.spinner("Analyzing physical characteristics and breed markers..."):
       try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=[prompt, image]
+            model="gemini-3.6-flash", contents=[prompt, image]
         )
         st.markdown("---")
         st.markdown("### 📋 Veterinary & Breed Profile")
