@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Paste your OpenRouter API key starting with sk-or-v1-... here:
+# Paste your OpenRouter API key starting with sk-or-v1-...
 OPENROUTER_API_KEY = "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"
 
 client = OpenAI(
@@ -19,7 +19,7 @@ client = OpenAI(
 )
 
 st.title("🐄 Smart Livestock Visual Analyzer")
-st.write("Upload an image of cattle or buffalo to receive a complete breed, sex, age stage, and veterinary profile breakdown.")
+st.write("Upload an image of cattle or buffalo to receive an exhaustive breed, sex, age stage, and complete veterinary profile breakdown.")
 
 # Multi-language selection dropdown
 selected_lang = st.selectbox(
@@ -43,33 +43,33 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Convert image to base64 data URL
+    # Compress image dimensions to optimize payload delivery
+    image.thumbnail((600, 600))
+
     buffered = io.BytesIO()
-    image.save(buffered, format="JPEG", quality=85)
+    image.save(buffered, format="JPEG", quality=80)
     img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
     prompt = f"""
-    You are an expert veterinary livestock specialist and animal geneticist. 
-    Analyze this livestock image thoroughly and produce a comprehensive, detailed report strictly in the chosen language: **{selected_lang}**.
+    You are a senior veterinary surgeon, livestock judge, and animal geneticist. 
+    Conduct an exhaustive visual assessment of this animal and write a comprehensive, multi-paragraph report strictly in **{selected_lang}**:
 
-    Write all sections, technical explanations, and bullet points fluently in {selected_lang}:
+    1. **Taxonomy & Breed Authenticity:** (Identify species and specific breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi. Describe historical origins, purity markers, and typical regional lineage).
+    2. **Sex & Reproductive Anatomy:** (Exhaustive breakdown of anatomical sex markers: udder conformation/teat placement, scrotal sac/sheath, neck crest musculature, and head profile).
+    3. **Age & Physiological Maturation:** (Detailed age classification: Calf / Heifer-Young / Mature Adult with visual rationale based on body frame, skeletal maturity, and proportions).
+    4. **Observed Phenotypic Traits:** (Detailed analysis of horn curvature, dorsal hump shape and placement, dewlap folds, skin pigmentation, and body condition score).
+    5. **Economic Utility & Productivity Profile:** (Estimated daily milk yield potential or field traction capacity, climate adaptability, heat resilience, and parasite tolerance).
+    6. **Veterinary Health & Feeding Protocol:** (Recommended daily feed formulation—dry roughage, green fodder, concentrate mix—plus routine vaccination milestones and diagnostic health screening markers).
 
-    1. **Animal Classification & Breed Identification:** (Species, identified breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, etc., and historical origin).
-    2. **Estimated Sex & Anatomical Cues:** (Male / Female — identify visual markers such as udder/teats, sheath, muscular neck bulk, or horn structure).
-    3. **Estimated Age Stage & Frame:** (Calf / Heifer-Young / Mature Adult — evaluate body proportions, frame size, and growth markers).
-    4. **Observed Phenotypic Traits:** (Horn curvature, dorsal hump presence/size, dewlap development, coat coloration pattern).
-    5. **Native Region & Primary Utility:** (Origin zone and specialization: Dairy, Draft, or Dual-purpose).
-    6. **Veterinary & Nutritional Care Insights:** (Recommended feeding practices, lactation/draft potential, and standard health screening markers).
-
-    Provide structured, comprehensive explanations under each section with high veterinary accuracy.
+    Provide thorough, multi-sentence paragraphs under every single section with high technical precision. All headings and explanations must be written fluently in {selected_lang}.
     """
 
     if st.button("Analyze Full Profile", type="primary"):
-        with st.spinner(f"Analyzing livestock markers in {selected_lang}..."):
+        with st.spinner(f"Generating comprehensive veterinary report in {selected_lang}..."):
             try:
                 completion = client.chat.completions.create(
-                    model="openrouter/free",
+                    model="meta-llama/llama-3.2-11b-vision-instruct:free",
                     messages=[
                         {
                             "role": "user",
@@ -84,7 +84,7 @@ if uploaded_file is not None:
                             ]
                         }
                     ],
-                    max_tokens=4096
+                    max_tokens=8192
                 )
                 st.markdown("---")
                 st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
