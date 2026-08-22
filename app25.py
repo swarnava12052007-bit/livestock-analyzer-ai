@@ -10,17 +10,17 @@ st.set_page_config(
     layout="centered"
 )
 
-# Paste your NVIDIA API Key here (starts with nvapi-)
-NVIDIA_API_KEY = "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"
+# Your GitHub Personal Access Token
+GITHUB_TOKEN = "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"
 
-# Point the client to NVIDIA's OpenAI-compatible endpoint
+# Point the client to GitHub's free developer models endpoint
 client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=NVIDIA_API_KEY.strip()
+    base_url="https://models.inference.ai.azure.com",
+    api_key=GITHUB_TOKEN.strip()
 )
 
 st.title("🐄 Smart Livestock Visual Analyzer")
-st.write("Upload an image of cattle or buffalo to receive an exhaustive species, breed, sex, age stage, and complete agricultural profile breakdown.")
+st.write("Upload an image of cattle or buffalo to receive an exhaustive species, breed, sex, age stage, and complete veterinary profile breakdown.")
 
 # Multi-language selection dropdown
 selected_lang = st.selectbox(
@@ -54,33 +54,29 @@ if uploaded_file is not None:
     # Standard Base64 data URI format
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
-    # THE FIX: Softened prompt to bypass medical safety filters
     prompt = f"""
-    You are an expert agricultural livestock appraiser and animal nutritionist. 
-    Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
+    You are an expert veterinary livestock appraiser. Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
 
     Provide direct, concise, and complete technical bullet points under each section:
-
-    1. **Primary Species Identification:** (Explicitly determine first: Cattle vs Buffalo with key anatomical distinctions like horn orientation, muzzle shape, skin texture, and dewlap structure).
-    2. **Taxonomy & Specific Breed:** (Identified breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, etc., along with regional origin and purity indicators).
-    3. **Sex & Anatomical Indicators:** (Sex identification with key visual cues: udder/teats, sheath, musculature, horn shape).
-    4. **Age & Physiological Maturation:** (Classification: Calf / Young / Mature Adult with visual markers based on body frame and proportions).
-    5. **Observed Phenotypic Traits:** (Analysis of horn curvature, dorsal hump presence, dewlap folds, coat color).
-    6. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity, heat resilience, and climate adaptability).
-    7. **General Animal Husbandry & Nutritional Profile:** (Recommended daily diet formulation—roughage, green fodder, concentrate mix—and standard farm maintenance guidelines. Do NOT provide medical diagnoses).
+    1. **Primary Species Identification:** (Explicitly determine first: Cattle vs Buffalo).
+    2. **Taxonomy & Specific Breed:** (Identified breed such as Gir, Murrah, Sahiwal, etc.).
+    3. **Sex & Anatomical Indicators:** (Visual cues like udder/teats, sheath, horn shape).
+    4. **Age & Physiological Maturation:** (Calf / Young / Mature Adult).
+    5. **Observed Phenotypic Traits:** (Horn curvature, dorsal hump, coat color).
+    6. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity).
+    7. **General Animal Husbandry & Nutritional Profile:** (Recommended daily diet formulation—roughage, green fodder, concentrate mix).
 
     Important Constraints:
     - Ensure EVERY numbered section from 1 to 7 is completely answered.
-    - Keep explanations high-signal and structured so the report finishes smoothly.
     - End the report with a final concluding sentence.
     """
 
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete agricultural report in {selected_lang}..."):
             try:
-                # Using NVIDIA's hosted Llama 3.2 11B Vision model
+                # Using GPT-4o-mini which has native vision and no strict veterinary censors
                 completion = client.chat.completions.create(
-                    model="meta/llama-3.2-11b-vision-instruct",
+                    model="gpt-4o-mini",
                     messages=[
                         {
                             "role": "user",
@@ -99,7 +95,7 @@ if uploaded_file is not None:
                 )
                 
                 st.markdown("---")
-                st.markdown(f"### 📋 Agricultural & Breed Profile ({selected_lang})")
+                st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
                 st.markdown(completion.choices[0].message.content)
                 
             except Exception as e:
