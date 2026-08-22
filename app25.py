@@ -51,20 +51,25 @@ if uploaded_file is not None:
 
     prompt = f"""
     You are a senior veterinary livestock specialist and animal geneticist. 
-    Analyze this livestock image thoroughly and produce an exhaustive, multi-paragraph report strictly in **{selected_lang}**:
+    Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
 
-    1. **Taxonomy & Breed Authenticity:** (Identify species and specific breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi. Describe historical origins, purity markers, and typical regional lineage).
-    2. **Sex & Reproductive Anatomy:** (Exhaustive breakdown of anatomical sex markers: udder conformation/teat placement, scrotal sac/sheath, neck crest musculature, and head profile).
-    3. **Age & Physiological Maturation:** (Detailed age classification: Calf / Heifer-Young / Mature Adult with visual rationale based on body frame, skeletal maturity, and proportions).
-    4. **Observed Phenotypic Traits:** (Detailed analysis of horn curvature, dorsal hump shape and placement, dewlap folds, skin pigmentation, and body condition score).
-    5. **Economic Utility & Productivity Profile:** (Estimated daily milk yield potential or field traction capacity, climate adaptability, heat resilience, and parasite tolerance).
-    6. **Veterinary Health & Feeding Protocol:** (Recommended daily feed formulation—dry roughage, green fodder, concentrate mix—plus routine vaccination milestones and diagnostic health screening markers).
+    Provide direct, concise, and complete technical bullet points under each of the 6 sections:
 
-    Provide thorough, multi-sentence explanations under every section with high technical precision. All headings and text must be in {selected_lang}.
+    1. **Taxonomy & Breed Authenticity:** (Species, identified breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, and historical regional lineage).
+    2. **Sex & Anatomical Indicators:** (Sex identification with key visual cues: udder/teats, sheath, musculature, horn shape).
+    3. **Age & Physiological Maturation:** (Classification: Calf / Young / Mature Adult with visual markers based on body frame and proportions).
+    4. **Observed Phenotypic Traits:** (Analysis of horn curvature, dorsal hump presence, dewlap folds, coat color).
+    5. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity, heat resilience, and climate adaptability).
+    6. **Veterinary Health & Feeding Protocol:** (Recommended feed formulation—roughage, green fodder, concentrate mix—and key health screening markers).
+
+    Important Constraints:
+    - Ensure EVERY numbered section from 1 to 6 is completely answered.
+    - Keep explanations high-signal and structured so the report finishes smoothly.
+    - End the report with a final concluding sentence.
     """
 
     if st.button("Analyze Full Profile", type="primary"):
-        with st.spinner(f"Generating comprehensive veterinary report in {selected_lang}..."):
+        with st.spinner(f"Generating complete veterinary report in {selected_lang}..."):
             models_to_try = [
                 "google/gemma-3-27b-it:free",
                 "qwen/qwen-2.5-vl-72b-instruct:free",
@@ -81,7 +86,7 @@ if uploaded_file is not None:
                     api_key=api_key.strip()
                 )
 
-                # Attempt each free vision model sequentially if an endpoint is busy
+                # Attempt each free vision model sequentially
                 for model_name in models_to_try:
                     try:
                         completion = client.chat.completions.create(
@@ -100,7 +105,7 @@ if uploaded_file is not None:
                                     ]
                                 }
                             ],
-                            max_tokens=8192
+                            max_tokens=3000
                         )
                         response_content = completion.choices[0].message.content
                         break
