@@ -17,7 +17,7 @@ OPENROUTER_KEYS = [
 ]
 
 st.title("🐄 Smart Livestock Visual Analyzer")
-st.write("Upload an image of cattle or buffalo to receive an exhaustive breed, sex, age stage, and complete veterinary profile breakdown.")
+st.write("Upload an image of cattle or buffalo to receive an exhaustive species, breed, sex, age stage, and complete veterinary profile breakdown.")
 
 # Multi-language selection dropdown
 selected_lang = st.selectbox(
@@ -53,17 +53,18 @@ if uploaded_file is not None:
     You are a senior veterinary livestock specialist and animal geneticist. 
     Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
 
-    Provide direct, concise, and complete technical bullet points under each of the 6 sections:
+    Provide direct, concise, and complete technical bullet points under each section:
 
-    1. **Taxonomy & Breed Authenticity:** (Species, identified breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, and historical regional lineage).
-    2. **Sex & Anatomical Indicators:** (Sex identification with key visual cues: udder/teats, sheath, musculature, horn shape).
-    3. **Age & Physiological Maturation:** (Classification: Calf / Young / Mature Adult with visual markers based on body frame and proportions).
-    4. **Observed Phenotypic Traits:** (Analysis of horn curvature, dorsal hump presence, dewlap folds, coat color).
-    5. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity, heat resilience, and climate adaptability).
-    6. **Veterinary Health & Feeding Protocol:** (Recommended feed formulation—roughage, green fodder, concentrate mix—and key health screening markers).
+    1. **Primary Species Identification:** (Explicitly determine first: **Cattle (गाय / Bovine)** vs **Buffalo (भैंस / Bubaline)** with key anatomical distinctions like horn orientation, muzzle shape, skin texture, and dewlap structure).
+    2. **Taxonomy & Specific Breed:** (Identified breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, etc., along with regional origin and purity indicators).
+    3. **Sex & Anatomical Indicators:** (Sex identification with key visual cues: udder/teats, sheath, musculature, horn shape).
+    4. **Age & Physiological Maturation:** (Classification: Calf / Young / Mature Adult with visual markers based on body frame and proportions).
+    5. **Observed Phenotypic Traits:** (Analysis of horn curvature, dorsal hump presence, dewlap folds, coat color).
+    6. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity, heat resilience, and climate adaptability).
+    7. **Veterinary Health & Feeding Protocol:** (Recommended feed formulation—roughage, green fodder, concentrate mix—and key health screening markers).
 
     Important Constraints:
-    - Ensure EVERY numbered section from 1 to 6 is completely answered.
+    - Ensure EVERY numbered section from 1 to 7 is completely answered.
     - Keep explanations high-signal and structured so the report finishes smoothly.
     - End the report with a final concluding sentence.
     """
