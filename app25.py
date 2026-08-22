@@ -1,6 +1,6 @@
 import base64
 import io
-from groq import Groq
+from openai import OpenAI
 from PIL import Image
 import streamlit as st
 
@@ -10,9 +10,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# Your Groq API Key
-GROQ_API_KEY = "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"
-client = Groq(api_key=GROQ_API_KEY.strip())
+# Paste your OpenRouter API key starting with sk-or-v1-... here:
+OPENROUTER_API_KEY = "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"
+
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY.strip()
+)
 
 st.title("🐄 Smart Livestock Visual Analyzer")
 st.write("Upload an image of cattle or buffalo to receive a complete breed, sex, age stage, and veterinary profile breakdown.")
@@ -39,11 +43,9 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Resize image to preserve token budget
-    image.thumbnail((600, 600))
-
+    # Convert image to base64 data URL
     buffered = io.BytesIO()
-    image.save(buffered, format="JPEG", quality=75)
+    image.save(buffered, format="JPEG", quality=85)
     img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
@@ -67,7 +69,7 @@ if uploaded_file is not None:
         with st.spinner(f"Analyzing livestock markers in {selected_lang}..."):
             try:
                 completion = client.chat.completions.create(
-                    model="qwen/qwen3.6-27b",
+                    model="openrouter/free",
                     messages=[
                         {
                             "role": "user",
@@ -82,8 +84,7 @@ if uploaded_file is not None:
                             ]
                         }
                     ],
-                    temperature=0.2,
-                    max_tokens=2500
+                    max_tokens=4096
                 )
                 st.markdown("---")
                 st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
