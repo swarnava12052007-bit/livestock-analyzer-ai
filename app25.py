@@ -11,13 +11,13 @@ st.set_page_config(
 )
 
 # Your Groq API Key
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 client = Groq(api_key=GROQ_API_KEY.strip())
 
 st.title("🐄 Smart Livestock Visual Analyzer")
-st.write("Upload an image of cattle or buffalo to receive a complete breed, sex, age stage, and profile breakdown.")
+st.write("Upload an image of cattle or buffalo to receive a complete breed, sex, age stage, and veterinary profile breakdown.")
 
-# Language selection dropdown
+# Multi-language selection dropdown
 selected_lang = st.selectbox(
     "🌐 Select Report Language / भाषा चुनें",
     [
@@ -39,28 +39,28 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Resize image to optimize token usage and stay within limits
-    image.thumbnail((800, 800))
+    # Resize image to preserve token budget
+    image.thumbnail((600, 600))
 
     buffered = io.BytesIO()
-    image.save(buffered, format="JPEG", quality=85)
+    image.save(buffered, format="JPEG", quality=75)
     img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
     prompt = f"""
     You are an expert veterinary livestock specialist and animal geneticist. 
-    Thoroughly analyze this livestock image and produce a detailed report strictly in the chosen language: **{selected_lang}**.
+    Analyze this livestock image thoroughly and produce a comprehensive, detailed report strictly in the chosen language: **{selected_lang}**.
 
-    Ensure all section headers, technical details, and bullet points are written fluently in {selected_lang}:
+    Write all sections, technical explanations, and bullet points fluently in {selected_lang}:
 
-    1. **Animal Classification & Breed:** (Cattle / Buffalo / Other, along with the precise breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, etc.)
-    2. **Estimated Sex & Anatomical Indicators:** (Male / Female — identify visual markers such as udder/teats, sheath, muscular neck bulk, or horn formation)
-    3. **Estimated Age Stage & Frame:** (Calf / Heifer-Young / Mature Adult — evaluate body proportions, frame size, and growth markers)
-    4. **Observed Phenotypic Traits:** (Horn curvature, presence/size of dorsal hump, coat color pattern, dewlap development)
-    5. **Native Region & Primary Utility:** (Origin zone and whether it is specialized for Dairy, Draft, or Dual-purpose utility)
-    6. **Care & Productivity Insights:** (Optimal feed suggestions, standard lactation/draft potential, and key health screening markers)
+    1. **Animal Classification & Breed Identification:** (Species, identified breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi, etc., and historical origin).
+    2. **Estimated Sex & Anatomical Cues:** (Male / Female — identify visual markers such as udder/teats, sheath, muscular neck bulk, or horn structure).
+    3. **Estimated Age Stage & Frame:** (Calf / Heifer-Young / Mature Adult — evaluate body proportions, frame size, and growth markers).
+    4. **Observed Phenotypic Traits:** (Horn curvature, dorsal hump presence/size, dewlap development, coat coloration pattern).
+    5. **Native Region & Primary Utility:** (Origin zone and specialization: Dairy, Draft, or Dual-purpose).
+    6. **Veterinary & Nutritional Care Insights:** (Recommended feeding practices, lactation/draft potential, and standard health screening markers).
 
-    Format clearly using bold titles, structured bullet points, and high technical accuracy.
+    Provide structured, comprehensive explanations under each section with high veterinary accuracy.
     """
 
     if st.button("Analyze Full Profile", type="primary"):
@@ -83,7 +83,7 @@ if uploaded_file is not None:
                         }
                     ],
                     temperature=0.2,
-                    max_tokens=4096
+                    max_tokens=2500
                 )
                 st.markdown("---")
                 st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
