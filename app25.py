@@ -1,16 +1,18 @@
-import os
+import base64
+import io
+from groq import Groq
 from PIL import Image
-from google import genai
 import streamlit as st
 
 st.set_page_config(
     page_title="Livestock Deep Analyzer", page_icon="🐄", layout="centered"
 )
 
-# Paste your copied key here directly inside os.environ:
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6JAbXQdxg28Y_M4nXC-7553Qd1MbY-KJHRczA89uyYduw"
-
-client = genai.Client()
+# Your Groq API Key
+GROQ_API_KEY = (
+    "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"
+)
+client = Groq(api_key=GROQ_API_KEY)
 
 st.title("🐄 Smart Livestock Visual Analyzer")
 st.write(
@@ -23,8 +25,14 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-  image = Image.open(uploaded_file)
+  image = Image.open(uploaded_file).convert("RGB")
   st.image(image, caption="Target Animal", use_container_width=True)
+
+  # Convert image to base64 data URL
+  buffered = io.BytesIO()
+  image.save(buffered, format="JPEG")
+  img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+  image_url = f"data:image/jpeg;base64,{img_base64}"
 
   prompt = """
     You are an expert veterinary livestock specialist. Analyze this image thoroughly and provide a structured report:
@@ -42,11 +50,20 @@ if uploaded_file is not None:
   if st.button("Analyze Full Profile", type="primary"):
     with st.spinner("Analyzing physical characteristics and breed markers..."):
       try:
-        response = client.models.generate_content(
-            model="gemini-3.6-flash", contents=[prompt, image]
+        completion = client.chat.completions.create(
+            model="qwen/qwen3.6-27b",
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ],
+            }],
+            temperature=0.2,
+            max_tokens=1024,
         )
         st.markdown("---")
         st.markdown("### 📋 Veterinary & Breed Profile")
-        st.markdown(response.text)
+        st.markdown(completion.choices[0].message.content)
       except Exception as e:
         st.error(f"Error analyzing image: {e}")
