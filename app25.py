@@ -10,12 +10,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# Your SambaNova API Key
-SAMBANOVA_API_KEY = "353d6d5d-efc1-472b-bdfc-eb7d824b6109"
+# Paste your NVIDIA API Key here (starts with nvapi-)
+NVIDIA_API_KEY = "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"
 
+# Point the client to NVIDIA's OpenAI-compatible endpoint
 client = OpenAI(
-    base_url="https://api.sambanova.ai/v1",
-    api_key=SAMBANOVA_API_KEY.strip()
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=NVIDIA_API_KEY.strip()
 )
 
 st.title("🐄 Smart Livestock Visual Analyzer")
@@ -49,6 +50,8 @@ if uploaded_file is not None:
     buffered = io.BytesIO()
     image.save(buffered, format="JPEG", quality=80)
     img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    
+    # Standard Base64 data URI format
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
     prompt = f"""
@@ -74,9 +77,9 @@ if uploaded_file is not None:
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete veterinary report in {selected_lang}..."):
             try:
-                # Using SambaNova's updated Gemma 4 Vision model
+                # Using NVIDIA's hosted Llama 3.2 11B Vision model
                 completion = client.chat.completions.create(
-                    model="gemma-4-31B-it",
+                    model="meta/llama-3.2-11b-vision-instruct",
                     messages=[
                         {
                             "role": "user",
