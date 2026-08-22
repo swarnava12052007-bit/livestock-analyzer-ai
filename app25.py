@@ -2,7 +2,8 @@ import base64
 import io
 from PIL import Image
 import streamlit as st
-from openai import OpenAI
+from google import genai
+from google.genai import types
 
 st.set_page_config(
     page_title="Livestock Deep Analyzer",
@@ -10,13 +11,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# Your Together AI API Key
-TOGETHER_API_KEY = "key_CeJ1FcNMK1oX5nrdCnWk3"
+# Paste your Gemini AQ. API Key here
+GEMINI_API_KEY = "AQ.Ab8RN6JU5FnS5IbbCQRLv-6y8gF2tcAnLkPkLYx0-uqXjGOhZA"
 
-# Point the standard OpenAI client to Together AI's reliable servers
-client = OpenAI(
-    base_url="https://api.together.xyz/v1",
-    api_key=TOGETHER_API_KEY.strip()
+# Initialize the official Google GenAI client with headers to properly accept AQ keys
+client = genai.Client(
+    api_key=GEMINI_API_KEY.strip(),
+    http_options=types.HttpOptions(headers={"x-goog-api-key": GEMINI_API_KEY.strip()})
 )
 
 st.title("🐄 Smart Livestock Visual Analyzer")
@@ -44,17 +45,9 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Resize image to optimize transmission speed and save bandwidth
+    # Resize image to optimize transmission speed
     image.thumbnail((700, 700))
 
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG", quality=80)
-    img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    
-    # Standard Base64 data URI format
-    image_url = f"data:image/jpeg;base64,{img_base64}"
-
-    # Safe agricultural prompt to avoid any AI safety refusals
     prompt = f"""
     You are an expert agricultural livestock appraiser and animal nutritionist. 
     Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
@@ -66,7 +59,7 @@ if uploaded_file is not None:
     4. **Age & Physiological Maturation:** (Calf / Young / Mature Adult).
     5. **Observed Phenotypic Traits:** (Horn curvature, dorsal hump, coat color).
     6. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity).
-    7. **General Animal Husbandry & Nutritional Profile:** (Recommended daily diet formulation—roughage, green fodder, concentrate mix. Do NOT provide medical diagnoses).
+    7. **General Animal Husbandry & Nutritional Profile:** (Recommended daily diet formulation—roughage, green fodder, concentrate mix).
 
     Important Constraints:
     - Ensure EVERY numbered section from 1 to 7 is completely answered.
@@ -76,29 +69,15 @@ if uploaded_file is not None:
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete agricultural report in {selected_lang}..."):
             try:
-                # Using Together AI's fast Llama 3.2 Vision Instruct endpoint
-                completion = client.chat.completions.create(
-                    model="meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": image_url
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    max_tokens=3000
+                # Using Google's fast gemini-2.5-flash model via the official SDK
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[image, prompt]
                 )
                 
                 st.markdown("---")
                 st.markdown(f"### 📋 Agricultural & Breed Profile ({selected_lang})")
-                st.markdown(completion.choices[0].message.content)
+                st.markdown(response.text)
                 
             except Exception as e:
                 st.error(f"Error analyzing image: {e}")
