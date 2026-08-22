@@ -1,8 +1,8 @@
 import base64
 import io
-from openai import OpenAI
 from PIL import Image
 import streamlit as st
+from openai import OpenAI
 
 st.set_page_config(
     page_title="Livestock Deep Analyzer",
@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Paste your OpenRouter API key starting with sk-or-v1-...
+# Your OpenRouter API Key
 OPENROUTER_API_KEY = "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"
 
 client = OpenAI(
@@ -43,8 +43,8 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Compress image dimensions to optimize payload delivery
-    image.thumbnail((600, 600))
+    # Resize image to optimize transmission
+    image.thumbnail((700, 700))
 
     buffered = io.BytesIO()
     image.save(buffered, format="JPEG", quality=80)
@@ -52,8 +52,8 @@ if uploaded_file is not None:
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
     prompt = f"""
-    You are a senior veterinary surgeon, livestock judge, and animal geneticist. 
-    Conduct an exhaustive visual assessment of this animal and write a comprehensive, multi-paragraph report strictly in **{selected_lang}**:
+    You are a senior veterinary livestock specialist and animal geneticist. 
+    Analyze this livestock image thoroughly and produce an exhaustive, multi-paragraph report strictly in **{selected_lang}**:
 
     1. **Taxonomy & Breed Authenticity:** (Identify species and specific breed such as Gir, Murrah, Sahiwal, Holstein Friesian, Nili-Ravi. Describe historical origins, purity markers, and typical regional lineage).
     2. **Sex & Reproductive Anatomy:** (Exhaustive breakdown of anatomical sex markers: udder conformation/teat placement, scrotal sac/sheath, neck crest musculature, and head profile).
@@ -62,32 +62,50 @@ if uploaded_file is not None:
     5. **Economic Utility & Productivity Profile:** (Estimated daily milk yield potential or field traction capacity, climate adaptability, heat resilience, and parasite tolerance).
     6. **Veterinary Health & Feeding Protocol:** (Recommended daily feed formulation—dry roughage, green fodder, concentrate mix—plus routine vaccination milestones and diagnostic health screening markers).
 
-    Provide thorough, multi-sentence paragraphs under every single section with high technical precision. All headings and explanations must be written fluently in {selected_lang}.
+    Provide thorough, multi-sentence explanations under every section with high technical precision. All headings and text must be in {selected_lang}.
     """
 
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating comprehensive veterinary report in {selected_lang}..."):
-            try:
-                completion = client.chat.completions.create(
-                    model="meta-llama/llama-3.2-11b-vision-instruct:free",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": image_url
+            # Reliable free vision models on OpenRouter
+            models_to_try = [
+                "google/gemma-3-27b-it:free",
+                "qwen/qwen-2.5-vl-72b-instruct:free",
+                "openrouter/free"
+            ]
+            
+            response_content = None
+            last_error = None
+
+            for model_name in models_to_try:
+                try:
+                    completion = client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": image_url
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    ],
-                    max_tokens=8192
-                )
+                                ]
+                            }
+                        ],
+                        max_tokens=4096
+                    )
+                    response_content = completion.choices[0].message.content
+                    break
+                except Exception as e:
+                    last_error = e
+                    continue
+
+            if response_content:
                 st.markdown("---")
                 st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
-                st.markdown(completion.choices[0].message.content)
-            except Exception as e:
-                st.error(f"Error analyzing image: {e}")
+                st.markdown(response_content)
+            else:
+                st.error(f"Error analyzing image: {last_error}")
