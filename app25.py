@@ -60,7 +60,7 @@ if uploaded_file is not None:
                 ],
             }],
             temperature=0.2,
-            max_tokens=16384,
+            max_tokens=4096,
         )
         st.markdown("---")
         st.markdown("### 📋 Veterinary & Breed Profile")
