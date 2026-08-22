@@ -1,7 +1,8 @@
+import base64
 import io
 from PIL import Image
 import streamlit as st
-from google import genai
+from openai import OpenAI
 
 st.set_page_config(
     page_title="Livestock Deep Analyzer",
@@ -9,9 +10,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# Paste your Google AI Studio key here:
-GEMINI_API_KEY = "AQ.Ab8RN6Ifngi4sSzMBr0vSTG3pfvwkf39cN18utPuuIRgamlAbg"
-client = genai.Client(api_key=GEMINI_API_KEY.strip())
+# Your SambaNova API Key
+SAMBANOVA_API_KEY = "353d6d5d-efc1-472b-bdfc-eb7d824b6109"
+
+client = OpenAI(
+    base_url="https://api.sambanova.ai/v1",
+    api_key=SAMBANOVA_API_KEY.strip()
+)
 
 st.title("🐄 Smart Livestock Visual Analyzer")
 st.write("Upload an image of cattle or buffalo to receive an exhaustive species, breed, sex, age stage, and complete veterinary profile breakdown.")
@@ -38,6 +43,14 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
+    # Resize image to optimize transmission speed
+    image.thumbnail((700, 700))
+
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG", quality=80)
+    img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    image_url = f"data:image/jpeg;base64,{img_base64}"
+
     prompt = f"""
     You are a senior veterinary livestock specialist and animal geneticist. 
     Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
@@ -54,19 +67,36 @@ if uploaded_file is not None:
 
     Important Constraints:
     - Ensure EVERY numbered section from 1 to 7 is completely answered.
-    - Write all sections and explanations fluently in {selected_lang}.
-    - Conclude with a clear veterinary summary.
+    - Keep explanations high-signal and structured so the report finishes smoothly.
+    - End the report with a final concluding sentence.
     """
 
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete veterinary report in {selected_lang}..."):
             try:
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[prompt, image]
+                # Using SambaNova's Llama 3.2 11B Vision model
+                completion = client.chat.completions.create(
+                    model="Llama-3.2-11B-Vision-Instruct",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": image_url
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens=3000
                 )
+                
                 st.markdown("---")
                 st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
-                st.markdown(response.text)
+                st.markdown(completion.choices[0].message.content)
+                
             except Exception as e:
                 st.error(f"Error analyzing image: {e}")
