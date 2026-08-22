@@ -14,7 +14,7 @@ st.set_page_config(
 # Paste your Gemini AQ. API Key here
 GEMINI_API_KEY = "AQ.Ab8RN6JU5FnS5IbbCQRLv-6y8gF2tcAnLkPkLYx0-uqXjGOhZA"
 
-# Initialize the official Google GenAI client with headers to properly accept AQ keys
+# Initialize the official Google GenAI client with headers for AQ keys
 client = genai.Client(
     api_key=GEMINI_API_KEY.strip(),
     http_options=types.HttpOptions(headers={"x-goog-api-key": GEMINI_API_KEY.strip()})
@@ -69,9 +69,9 @@ if uploaded_file is not None:
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete agricultural report in {selected_lang}..."):
             try:
-                # Using Google's fast gemini-2.5-flash model via the official SDK
+                # Using the active gemini-3.6-flash model
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-3.6-flash",
                     contents=[image, prompt]
                 )
                 
