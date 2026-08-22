@@ -10,13 +10,11 @@ st.set_page_config(
     layout="centered"
 )
 
-# Your OpenRouter API Key
-OPENROUTER_API_KEY = "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"
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=OPENROUTER_API_KEY.strip()
-)
+# OpenRouter API Keys with automatic failover rotation
+OPENROUTER_KEYS = [
+    "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",  # Primary Key
+    "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"   # Backup Key
+]
 
 st.title("🐄 Smart Livestock Visual Analyzer")
 st.write("Upload an image of cattle or buffalo to receive an exhaustive breed, sex, age stage, and complete veterinary profile breakdown.")
@@ -43,7 +41,7 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Resize image to optimize transmission
+    # Resize image to optimize transmission speed
     image.thumbnail((700, 700))
 
     buffered = io.BytesIO()
@@ -72,35 +70,46 @@ if uploaded_file is not None:
                 "qwen/qwen-2.5-vl-72b-instruct:free",
                 "openrouter/free"
             ]
-            
+
             response_content = None
             last_error = None
 
-            for model_name in models_to_try:
-                try:
-                    completion = client.chat.completions.create(
-                        model=model_name,
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": prompt},
-                                    {
-                                        "type": "image_url",
-                                        "image_url": {
-                                            "url": image_url
+            # Attempt each API key sequentially if daily limits are reached
+            for api_key in OPENROUTER_KEYS:
+                client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=api_key.strip()
+                )
+
+                # Attempt each free vision model sequentially if an endpoint is busy
+                for model_name in models_to_try:
+                    try:
+                        completion = client.chat.completions.create(
+                            model=model_name,
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "text", "text": prompt},
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": image_url
+                                            }
                                         }
-                                    }
-                                ]
-                            }
-                        ],
-                        max_tokens=8192
-                    )
-                    response_content = completion.choices[0].message.content
+                                    ]
+                                }
+                            ],
+                            max_tokens=8192
+                        )
+                        response_content = completion.choices[0].message.content
+                        break
+                    except Exception as e:
+                        last_error = e
+                        continue
+
+                if response_content:
                     break
-                except Exception as e:
-                    last_error = e
-                    continue
 
             if response_content:
                 st.markdown("---")
