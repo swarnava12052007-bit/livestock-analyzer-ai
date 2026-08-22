@@ -10,17 +10,17 @@ st.set_page_config(
     layout="centered"
 )
 
-# Your GitHub Personal Access Token
-GITHUB_TOKEN = "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"
+# Your Together AI API Key
+TOGETHER_API_KEY = "key_CeJ1FcNMK1oX5nrdCnWk3"
 
-# Point the client to GitHub's free developer models endpoint
+# Point the standard OpenAI client to Together AI's reliable servers
 client = OpenAI(
-    base_url="https://models.inference.ai.azure.com",
-    api_key=GITHUB_TOKEN.strip()
+    base_url="https://api.together.xyz/v1",
+    api_key=TOGETHER_API_KEY.strip()
 )
 
 st.title("🐄 Smart Livestock Visual Analyzer")
-st.write("Upload an image of cattle or buffalo to receive an exhaustive species, breed, sex, age stage, and complete veterinary profile breakdown.")
+st.write("Upload an image of cattle or buffalo to receive an exhaustive species, breed, sex, age stage, and complete agricultural profile breakdown.")
 
 # Multi-language selection dropdown
 selected_lang = st.selectbox(
@@ -44,7 +44,7 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Target Animal", use_container_width=True)
 
-    # Resize image to optimize transmission speed
+    # Resize image to optimize transmission speed and save bandwidth
     image.thumbnail((700, 700))
 
     buffered = io.BytesIO()
@@ -54,8 +54,10 @@ if uploaded_file is not None:
     # Standard Base64 data URI format
     image_url = f"data:image/jpeg;base64,{img_base64}"
 
+    # Safe agricultural prompt to avoid any AI safety refusals
     prompt = f"""
-    You are an expert veterinary livestock appraiser. Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
+    You are an expert agricultural livestock appraiser and animal nutritionist. 
+    Analyze this livestock image thoroughly and produce a structured, high-accuracy assessment strictly in **{selected_lang}**.
 
     Provide direct, concise, and complete technical bullet points under each section:
     1. **Primary Species Identification:** (Explicitly determine first: Cattle vs Buffalo).
@@ -64,7 +66,7 @@ if uploaded_file is not None:
     4. **Age & Physiological Maturation:** (Calf / Young / Mature Adult).
     5. **Observed Phenotypic Traits:** (Horn curvature, dorsal hump, coat color).
     6. **Economic Utility & Productivity Profile:** (Estimated milk yield potential or draft capacity).
-    7. **General Animal Husbandry & Nutritional Profile:** (Recommended daily diet formulation—roughage, green fodder, concentrate mix).
+    7. **General Animal Husbandry & Nutritional Profile:** (Recommended daily diet formulation—roughage, green fodder, concentrate mix. Do NOT provide medical diagnoses).
 
     Important Constraints:
     - Ensure EVERY numbered section from 1 to 7 is completely answered.
@@ -74,9 +76,9 @@ if uploaded_file is not None:
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete agricultural report in {selected_lang}..."):
             try:
-                # Using GPT-4o-mini which has native vision and no strict veterinary censors
+                # Using Together AI's fast Llama 3.2 Vision Instruct endpoint
                 completion = client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
                     messages=[
                         {
                             "role": "user",
@@ -95,7 +97,7 @@ if uploaded_file is not None:
                 )
                 
                 st.markdown("---")
-                st.markdown(f"### 📋 Veterinary & Breed Profile ({selected_lang})")
+                st.markdown(f"### 📋 Agricultural & Breed Profile ({selected_lang})")
                 st.markdown(completion.choices[0].message.content)
                 
             except Exception as e:
