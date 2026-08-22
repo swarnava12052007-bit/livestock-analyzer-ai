@@ -67,7 +67,6 @@ if uploaded_file is not None:
 
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating comprehensive veterinary report in {selected_lang}..."):
-            # Reliable free vision models on OpenRouter
             models_to_try = [
                 "google/gemma-3-27b-it:free",
                 "qwen/qwen-2.5-vl-72b-instruct:free",
@@ -95,7 +94,7 @@ if uploaded_file is not None:
                                 ]
                             }
                         ],
-                        max_tokens=4096
+                        max_tokens=8192
                     )
                     response_content = completion.choices[0].message.content
                     break
