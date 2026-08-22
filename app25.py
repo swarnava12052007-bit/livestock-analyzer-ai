@@ -74,9 +74,9 @@ if uploaded_file is not None:
     if st.button("Analyze Full Profile", type="primary"):
         with st.spinner(f"Generating complete veterinary report in {selected_lang}..."):
             try:
-                # Using SambaNova's Llama 3.2 11B Vision model
+                # Using SambaNova's updated Gemma 4 Vision model
                 completion = client.chat.completions.create(
-                    model="Llama-3.2-11B-Vision-Instruct",
+                    model="gemma-4-31B-it",
                     messages=[
                         {
                             "role": "user",
